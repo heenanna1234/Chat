@@ -166,6 +166,23 @@
             line-height: 1.6;
             word-wrap: break-word;
             animation: slideIn 0.3s ease-out;
+            cursor: default;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .msg.clickable {
+            cursor: pointer;
+        }
+
+        .msg.clickable:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .msg.selected {
+            border: 2px solid #667eea;
+            background: #f0f4ff;
         }
 
         @keyframes slideIn {
@@ -468,10 +485,25 @@
                 div.classList.add('from-you');
             } else if(d.user === 'ADMIN' || d.user.startsWith('ตอบถึง')) {
                 div.classList.add('from-admin');
+            } else {
+                // Message from another user to admin - make it clickable for selection
+                if(d.from_sid) {
+                    div.classList.add('clickable');
+                    div.style.cursor = 'pointer';
+                }
             }
             
-            let tool = d.from_sid ? `<span class="admin-action" onclick="setReply('${d.from_sid}')">↩️ ตอบกลับ</span>` : "";
+            let tool = d.from_sid ? `<span class="admin-action" onclick="setReply('${d.from_sid}', event)">↩️ ตอบกลับ</span>` : "";
             div.innerHTML = `<div class="msg-author">${d.user}</div><div>${d.text}${tool}</div>`;
+            
+            // If clickable user message, add click handler to select and reply
+            if(d.from_sid && d.user !== 'ADMIN' && !d.user.startsWith('ตอบถึง')) {
+                div.onclick = (e) => {
+                    if(e.target.classList.contains('admin-action')) return; // don't trigger if clicking reply button
+                    selectMessageThread(d.from_sid, d.user, div);
+                };
+            }
+            
             document.getElementById('chat').appendChild(div);
             document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
         });
@@ -481,8 +513,29 @@
             document.getElementById('chat').innerHTML = "<div style='text-align:center; color:gray; padding:20px;'>--- ลบประวัติแล้ว ---</div>"; 
         });
 
-        function setReply(sid) { 
-            document.getElementById('target_sid').value = sid; 
+        function selectMessageThread(sid, userName, msgElement) {
+            // Set the target user
+            document.getElementById('target_sid').value = sid;
+            document.getElementById('target_user_name').innerText = userName;
+            
+            // Remove previous selection
+            document.querySelectorAll('.msg.selected').forEach(m => m.classList.remove('selected'));
+            
+            // Mark this message as selected
+            if(msgElement) {
+                msgElement.classList.add('selected');
+            }
+            
+            // Show admin-info bar
+            document.getElementById('admin-info').style.display = 'block';
+            
+            // Focus input
+            document.getElementById('m').focus();
+        }
+
+        function setReply(sid, event) { 
+            if(event) event.stopPropagation();
+            selectMessageThread(sid, '?', null);
             document.getElementById('m').focus(); 
         }
         
