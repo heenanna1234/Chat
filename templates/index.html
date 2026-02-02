@@ -392,7 +392,11 @@
                 แอดมิน: <strong id="admin-name">-</strong>
                 &nbsp;|&nbsp; กำลังคุย: <strong id="target_user_name">(เลือกผู้ใช้จากซ้าย)</strong>
             </div>
-            
+            <!-- Main chat (broadcast) view -->
+            <div class="conversation-container active" id="main-chat">
+                <div class="conversation-header">📋 All Messages</div>
+                <div class="conversation-messages" id="chat"></div>
+            </div>
             <!-- Individual conversation containers (created dynamically) -->
             <div id="conversations-container"></div>
         </div>
@@ -552,25 +556,28 @@
             }
             
             let tool = d.from_sid ? `<span class="admin-action" onclick="setReply('${d.from_sid}', event)">↩️ ตอบกลับ</span>` : "";
-            div.innerHTML = `<div class="msg-author">${d.user}</div><div>${d.text}${tool}</div>`;
+            div.innerHTML = `<div class="msg-author">${escapeHtml(d.user)}</div><div>${escapeHtml(d.text)}${tool}</div>`;
             
             // If clickable user message, add click handler to select and reply
             if(d.from_sid && d.user !== 'ADMIN' && !d.user.startsWith('ตอบถึง')) {
                 div.onclick = (e) => {
-                    if(e.target.classList.contains('admin-action')) return; // don't trigger if clicking reply button
+                    if(e.target.classList.contains('admin-action')) return;
                     selectMessageThread(d.from_sid, d.user, div);
                 };
             }
             
-            // Add to main chat
-            document.getElementById('chat').appendChild(div);
-            document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+            // Add to main chat safely
+            const chatEl = document.getElementById('chat');
+            if(chatEl) {
+                chatEl.appendChild(div);
+                chatEl.scrollTop = chatEl.scrollHeight;
+            }
             
             // If this is a message from/to a selected user, also add to their conversation
             const targetSid = document.getElementById('target_sid').value;
-            if(targetSid) {
+            if(targetSid && d.from_sid === targetSid) {
                 const convMessages = document.getElementById('messages-' + targetSid);
-                if(convMessages && (d.from_sid === targetSid || (d.user !== 'คุณ' && d.from_sid))) {
+                if(convMessages) {
                     const divCopy = div.cloneNode(true);
                     convMessages.appendChild(divCopy);
                     convMessages.scrollTop = convMessages.scrollHeight;
