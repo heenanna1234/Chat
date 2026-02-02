@@ -45,7 +45,8 @@ with app.app_context():
 
 #--- ระบบจัดการแชท ---
 users = {}
-admins = set()
+admins = set()  # set of admin sids
+admin_names = {}  # map of sid -> admin_name
 ADMIN_PASS = os.environ.get('ADMIN_PASS', 'adminworakanjajakub')
 
 # Weapon/equipment names for admin display
@@ -55,6 +56,21 @@ ADMIN_WEAPONS = [
     'Rapier', 'Scimitar', 'Maul', 'Greatsword', 'Arbalest', 'Ballista', 'Catapult', 'Trebuchet', 'Cannon', 'Musket',
     'Blunderbuss', 'Flintlock', 'Rifle', 'Carbine', 'Revolver', 'Pistol', 'SMG', 'Shotgun', 'Sniper', 'Grenade'
 ]
+used_admin_names = set()  # track used admin names to prevent duplicates
+
+def get_unique_admin_name():
+    """Generate a unique admin name from ADMIN_WEAPONS, no duplicates."""
+    available = [w for w in ADMIN_WEAPONS if w not in used_admin_names]
+    if not available:
+        used_admin_names.clear()
+        available = ADMIN_WEAPONS
+    name = random.choice(available)
+    used_admin_names.add(name)
+    return name
+
+def get_admins_list():
+    """Return list of admins with their names for broadcasting."""
+    return [{'sid': sid, 'name': admin_names.get(sid, 'Admin')} for sid in admins]
 
 @app.route('/')
 def index():
@@ -85,16 +101,20 @@ def handle_join(data=None):
             at = AdminToken.query.filter_by(token=token).first()
             if at:
                 admins.add(request.sid)
-                users[request.sid] = at.name or users[request.sid]
+                admin_names[request.sid] = at.name
+                users[request.sid] = at.name
                 at.last_sid = request.sid
                 db.session.add(at)
                 db.session.commit()
                 emit('admin_status', {'is_admin': True})
-                # send user list to this admin only
-                emit('user_list', [{'sid': s, 'name': n} for s, n in users.items()])
+                # send admin list to this admin only
+                emit('user_list', get_admins_list())
+                # notify all other admins of new admin
+                socketio.emit('user_list', get_admins_list(), skip_sid=request.sid)
 
-    # broadcast updated user list to all connected clients (admins will use it)
-    socketio.emit('user_list', [{'sid': s, 'name': n} for s, n in users.items()])
+    # broadcast updated admin list ONLY to all admins (not to regular users)
+    if request.sid in admins:
+        socketio.emit('user_list', get_admins_list())
 
     # load history for this user (only messages not soft-deleted by the user)
     history = Message.query.filter(
@@ -113,7 +133,8 @@ def handle_admin_login(data):
         code = data.get('code', '')
     if code == ADMIN_PASS:
         admins.add(request.sid)
-        admin_name = random.choice(ADMIN_WEAPONS)
+        admin_name = get_unique_admin_name()
+        admin_names[request.sid] = admin_name
         users[request.sid] = admin_name
         # create a persistent token for this admin so they remain admin across refreshes
         import uuid
@@ -124,9 +145,11 @@ def handle_admin_login(data):
         emit('admin_status', {'is_admin': True})
         emit('admin_token', {'token': token})
         emit('sys_msg', {'msg': "คุณเข้าสู่ระบบแอดมินแล้ว"})
-        # send user list to this admin
-        emit('user_list', [{'sid': s, 'name': n} for s, n in users.items()])
-        print(f"[DEBUG] ADMIN LOGIN: sid={request.sid} token={token}")
+        # send admin list to this admin
+        emit('user_list', get_admins_list())
+        # notify all other admins
+        socketio.emit('user_list', get_admins_list(), skip_sid=request.sid)
+        print(f"[DEBUG] ADMIN LOGIN: sid={request.sid} name={admin_name} token={token}")
     else:
         emit('sys_msg', {'msg': "รหัสแอดมินไม่ถูกต้อง"})
 
@@ -185,9 +208,14 @@ def handle_admin_logout():
     if request.sid in admins:
         try:
             admins.remove(request.sid)
+            admin_name = admin_names.pop(request.sid, None)
+            if admin_name:
+                used_admin_names.discard(admin_name)  # free up the name
         except KeyError:
             pass
     emit('admin_status', {'is_admin': False})
+    # notify remaining admins
+    socketio.emit('user_list', get_admins_list())
 
 
 @socketio.on('disconnect')
@@ -195,9 +223,14 @@ def handle_disconnect():
     if request.sid in admins:
         try:
             admins.remove(request.sid)
+            admin_name = admin_names.pop(request.sid, None)
+            if admin_name:
+                used_admin_names.discard(admin_name)  # free up the name
         except KeyError:
             pass
     users.pop(request.sid, None)
+    # notify remaining admins of the disconnect
+    socketio.emit('user_list', get_admins_list())
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
