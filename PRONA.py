@@ -76,6 +76,17 @@ def get_other_admins_list(exclude_sid=None):
     """Return list of OTHER admins (excluding the specified sid)."""
     return [{'sid': sid, 'name': admin_names.get(sid, 'Admin')} for sid in admins if sid != exclude_sid]
 
+def get_all_users_for_admin(exclude_sid=None):
+    """Return all users (regular users + other admins) for admin's left panel."""
+    user_list = []
+    for sid, name in users.items():
+        if exclude_sid and sid == exclude_sid:
+            continue
+        # Only include if not an admin, or if it's another admin
+        if sid not in admins or sid != exclude_sid:
+            user_list.append({'sid': sid, 'name': name})
+    return user_list
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -111,14 +122,14 @@ def handle_join(data=None):
                 db.session.add(at)
                 db.session.commit()
                 emit('admin_status', {'is_admin': True})
-                # send OTHER admin list to this admin (exclude themselves)
-                emit('user_list', get_other_admins_list(request.sid))
+                # send all users to this admin (exclude themselves)
+                emit('user_list', get_all_users_for_admin(request.sid))
                 # notify all other admins of new admin
                 socketio.emit('user_list', get_admins_list(), skip_sid=request.sid)
 
-    # broadcast updated admin list ONLY to all admins (not to regular users)
+    # broadcast updated user list ONLY to all admins (not to regular users)
     if request.sid in admins:
-        socketio.emit('user_list', get_other_admins_list(request.sid))
+        socketio.emit('user_list', get_all_users_for_admin(request.sid))
 
     # load history for this user (only messages not soft-deleted by the user)
     history = Message.query.filter(
@@ -149,9 +160,9 @@ def handle_admin_login(data):
         emit('admin_status', {'is_admin': True})
         emit('admin_token', {'token': token})
         emit('sys_msg', {'msg': "คุณเข้าสู่ระบบแอดมินแล้ว"})
-        # send OTHER admin list to this admin (exclude themselves)
-        emit('user_list', get_other_admins_list(request.sid))
-        # notify all other admins (they see the new admin)
+        # send all users to this admin (exclude themselves)
+        emit('user_list', get_all_users_for_admin(request.sid))
+        # notify all other admins (they see all users including new admin)
         socketio.emit('user_list', get_admins_list(), skip_sid=request.sid)
         print(f"[DEBUG] ADMIN LOGIN: sid={request.sid} name={admin_name} token={token}")
     else:
@@ -195,6 +206,9 @@ def handle_message(data):
             emit('message_ack', {'status': 'saved', 'id': new_msg.id}, room=request.sid)
         except Exception as _:
             print('[DEBUG] failed to emit ack to', request.sid)
+        # notify all admins of updated user list (in case new users joined)
+        for a_sid in admins:
+            socketio.emit('user_list', get_all_users_for_admin(a_sid), room=a_sid)
 
 @socketio.on('clear_my_chat')
 def clear_chat():
@@ -233,8 +247,9 @@ def handle_disconnect():
         except KeyError:
             pass
     users.pop(request.sid, None)
-    # notify remaining admins of the disconnect
-    socketio.emit('user_list', get_admins_list())
+    # notify remaining admins of the disconnect (updated user list)
+    for a_sid in admins:
+        socketio.emit('user_list', get_all_users_for_admin(a_sid), room=a_sid)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
