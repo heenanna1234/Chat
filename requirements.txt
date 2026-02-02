@@ -3,3 +3,5 @@ flask-socketio
 flask-sqlalchemy
 eventlet
 gunicorn
+Flask-Migrate
+alembic
