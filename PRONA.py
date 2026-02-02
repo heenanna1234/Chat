@@ -48,6 +48,14 @@ users = {}
 admins = set()
 ADMIN_PASS = os.environ.get('ADMIN_PASS', 'adminworakanjajakub')
 
+# Weapon/equipment names for admin display
+ADMIN_WEAPONS = [
+    'Shield', 'Sword', 'Spear', 'Bow', 'Axe', 'Mace', 'Hammer', 'Crossbow', 'Dagger', 'Lance',
+    'Flail', 'Pike', 'Halberd', 'Sabre', 'Katana', 'Claymore', 'Longsword', 'Falchion', 'Warhammer', 'Trident',
+    'Rapier', 'Scimitar', 'Maul', 'Greatsword', 'Arbalest', 'Ballista', 'Catapult', 'Trebuchet', 'Cannon', 'Musket',
+    'Blunderbuss', 'Flintlock', 'Rifle', 'Carbine', 'Revolver', 'Pistol', 'SMG', 'Shotgun', 'Sniper', 'Grenade'
+]
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -105,7 +113,7 @@ def handle_admin_login(data):
         code = data.get('code', '')
     if code == ADMIN_PASS:
         admins.add(request.sid)
-        admin_name = f"ADMIN-{len(admins)}"
+        admin_name = random.choice(ADMIN_WEAPONS)
         users[request.sid] = admin_name
         # create a persistent token for this admin so they remain admin across refreshes
         import uuid
