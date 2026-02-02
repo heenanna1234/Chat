@@ -72,6 +72,10 @@ def get_admins_list():
     """Return list of admins with their names for broadcasting."""
     return [{'sid': sid, 'name': admin_names.get(sid, 'Admin')} for sid in admins]
 
+def get_other_admins_list(exclude_sid=None):
+    """Return list of OTHER admins (excluding the specified sid)."""
+    return [{'sid': sid, 'name': admin_names.get(sid, 'Admin')} for sid in admins if sid != exclude_sid]
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -107,14 +111,14 @@ def handle_join(data=None):
                 db.session.add(at)
                 db.session.commit()
                 emit('admin_status', {'is_admin': True})
-                # send admin list to this admin only
-                emit('user_list', get_admins_list())
+                # send OTHER admin list to this admin (exclude themselves)
+                emit('user_list', get_other_admins_list(request.sid))
                 # notify all other admins of new admin
                 socketio.emit('user_list', get_admins_list(), skip_sid=request.sid)
 
     # broadcast updated admin list ONLY to all admins (not to regular users)
     if request.sid in admins:
-        socketio.emit('user_list', get_admins_list())
+        socketio.emit('user_list', get_other_admins_list(request.sid))
 
     # load history for this user (only messages not soft-deleted by the user)
     history = Message.query.filter(
@@ -145,9 +149,9 @@ def handle_admin_login(data):
         emit('admin_status', {'is_admin': True})
         emit('admin_token', {'token': token})
         emit('sys_msg', {'msg': "คุณเข้าสู่ระบบแอดมินแล้ว"})
-        # send admin list to this admin
-        emit('user_list', get_admins_list())
-        # notify all other admins
+        # send OTHER admin list to this admin (exclude themselves)
+        emit('user_list', get_other_admins_list(request.sid))
+        # notify all other admins (they see the new admin)
         socketio.emit('user_list', get_admins_list(), skip_sid=request.sid)
         print(f"[DEBUG] ADMIN LOGIN: sid={request.sid} name={admin_name} token={token}")
     else:
@@ -214,7 +218,7 @@ def handle_admin_logout():
         except KeyError:
             pass
     emit('admin_status', {'is_admin': False})
-    # notify remaining admins
+    # notify remaining admins of the logout
     socketio.emit('user_list', get_admins_list())
 
 
