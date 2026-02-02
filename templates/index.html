@@ -519,6 +519,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast notification container -->
+    <div id="toast-container"></div>
     <style>
         @keyframes slideUp {
             from { transform: translateY(50px); opacity: 0; }
@@ -526,6 +529,87 @@
         }
         #admin-modal { display: none !important; }
         #admin-modal[data-open="true"] { display: flex !important; }
+
+        /* Toast notification styles */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 320px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideInRight 0.3s ease-out;
+            pointer-events: auto;
+            cursor: pointer;
+            max-width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast.hide {
+            animation: slideOutRight 0.3s ease-out forwards;
+        }
+
+        @media (max-width: 768px) {
+            #toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+            .toast {
+                padding: 14px 16px;
+                font-size: 13px;
+            }
+        }
     </style>
 
     <script>
@@ -533,6 +617,50 @@
         function closeAdminModal() { document.getElementById('admin-modal').setAttribute('data-open', 'false'); document.getElementById('admin-code').value = ''; }
         function submitAdminLogin() { const code = document.getElementById('admin-code').value; if(code) socket.emit('admin_login', {code}); closeAdminModal(); }
         document.getElementById('admin-code').addEventListener("keypress", (e) => { if (e.key === "Enter") submitAdminLogin(); });
+
+        /* Notification System */
+        let unreadCount = 0;
+        const pageTitle = document.title;
+
+        function showToast(msg, type = 'info', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>🔔</span><span>${escapeHtml(msg)}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function updateUnreadBadge() {
+            if(unreadCount > 0) {
+                document.title = `(${unreadCount}) ${pageTitle}`;
+            } else {
+                document.title = pageTitle;
+            }
+        }
+
+        function requestNotificationPermission() {
+            if('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        function sendBrowserNotification(title, options = {}) {
+            if('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, {
+                    icon: '🔔',
+                    badge: '🔔',
+                    ...options
+                });
+            }
+        }
+
+        // Request permission on page load
+        requestNotificationPermission();
     </script>
     <script>
         const ANIMALS = [
@@ -707,6 +835,23 @@
                     convMessages.scrollTop = convMessages.scrollHeight;
                 }
             }
+
+            // Show notifications if message is not from current user
+            if(d.user !== 'คุณ') {
+                // Toast notification
+                showToast(`💬 ${escapeHtml(d.user)}: ${escapeHtml(d.text.substring(0, 50))}${d.text.length > 50 ? '...' : ''}`, 'info', 5000);
+                
+                // Browser notification
+                sendBrowserNotification(`💬 New message from ${d.user}`, {
+                    body: d.text.substring(0, 100),
+                    tag: 'new_message',
+                    requireInteraction: false
+                });
+                
+                // Update unread count and badge
+                unreadCount++;
+                updateUnreadBadge();
+            }
         });
 
         socket.on('sys_msg', d => { alert(d.msg); });
@@ -715,6 +860,10 @@
         });
 
         function selectMessageThread(sid, userName, msgElement) {
+            // Reset unread count when opening a conversation
+            unreadCount = 0;
+            updateUnreadBadge();
+
             // Set the target user
             document.getElementById('target_sid').value = sid;
             
