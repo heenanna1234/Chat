@@ -19,17 +19,20 @@
         #header { 
             background: linear-gradient(135deg, #075e54 0%, #056b4f 100%);
             color: white; 
-            padding: 16px 20px;
+            padding: 12px 16px;
             display: flex; 
             justify-content: space-between; 
-            align-items: center; 
+            align-items: center;
+            gap: 8px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             border-bottom: 3px solid #ffc107;
+            flex-wrap: wrap;
         }
         #my-name { 
             font-weight: 700; 
             font-size: 15px;
             letter-spacing: 0.3px;
+            flex: 1;
         }
         
         .main-container {
@@ -293,21 +296,22 @@
 
         #input-area {
             background: linear-gradient(to top, #f5f5f5, #ffffff);
-            padding: 16px 20px;
+            padding: 12px 16px;
             display: flex;
-            gap: 12px;
+            gap: 8px;
             border-top: 2px solid #e8e8e8;
             align-items: center;
             box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+            flex-wrap: wrap;
         }
 
         input {
             flex: 1;
-            padding: 13px 18px;
+            padding: 14px 18px;
             border-radius: 28px;
             border: 2px solid #e0e0e0;
             outline: none;
-            font-size: 14px;
+            font-size: 16px;
             font-family: inherit;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: white;
@@ -323,18 +327,29 @@
             color: #999;
         }
 
+        @supports (padding: max(0px)) {
+            input {
+                padding: max(14px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
+            }
+        }
+
         button {
             border: none;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 11px 28px;
+            padding: 12px 32px;
             border-radius: 28px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
             border: 2px solid transparent;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
 
         button:hover:not(:disabled) {
@@ -355,22 +370,107 @@
 
         .del-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            padding: 8px 15px;
-            font-size: 12px;
+            padding: 10px 18px;
+            font-size: 13px;
+            min-height: 40px;
         }
 
         @media (max-width: 768px) {
+            #header {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            #my-name {
+                font-size: 13px;
+                flex: 1;
+            }
             .main-container {
                 flex-direction: column;
             }
             #left-panel {
                 width: 100%;
-                height: 150px;
+                height: 180px;
                 border-right: none;
                 border-bottom: 2px solid #e0e0e0;
             }
+            #user-list {
+                padding: 10px;
+                gap: 10px;
+            }
+            .user-item {
+                padding: 14px 16px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+            #input-area {
+                padding: 12px 16px;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            input {
+                padding: 14px 16px;
+                font-size: 16px;
+                min-height: 44px;
+            }
+            button {
+                padding: 12px 24px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+            .del-btn {
+                min-height: 44px;
+                padding: 10px 16px;
+            }
             .msg {
                 max-width: 90%;
+                padding: 12px 14px;
+                font-size: 15px;
+            }
+            #admin-info {
+                font-size: 12px;
+                padding: 12px 16px;
+            }
+            .conversation-header {
+                font-size: 15px;
+                padding: 12px 16px;
+            }
+            #chat-area {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #header {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+            #my-name {
+                font-size: 12px;
+            }
+            input {
+                font-size: 16px;
+                padding: 12px 14px;
+                min-height: 44px;
+            }
+            button {
+                padding: 12px 20px;
+                font-size: 13px;
+                min-height: 44px;
+            }
+            .user-item {
+                padding: 12px 14px;
+                font-size: 13px;
+                min-height: 44px;
+            }
+            #input-area {
+                padding: 10px 12px;
+                gap: 6px;
+            }
+            .msg {
+                max-width: 95%;
+                font-size: 14px;
             }
         }
     </style>
@@ -408,7 +508,32 @@
         <input type="hidden" id="target_sid" value="">
     </div>
 
+    <!-- Mobile-friendly admin login dialog -->
+    <div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:24px; box-shadow:0 10px 40px rgba(0,0,0,0.3); max-width:320px; width:90%; animation:slideUp 0.3s ease-out;">
+            <h2 style="margin:0 0 16px; color:#075e54; font-size:18px;">🔐 ล็อกอิน Admin</h2>
+            <input type="password" id="admin-code" placeholder="ใส่รหัสแอดมิน" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-size:16px; margin-bottom:16px;">
+            <div style="display:flex; gap:8px;">
+                <button onclick="closeAdminModal()" style="flex:1; background:#999; min-height:44px;">ยกเลิก</button>
+                <button onclick="submitAdminLogin()" style="flex:1; min-height:44px;">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        #admin-modal { display: none !important; }
+        #admin-modal[data-open="true"] { display: flex !important; }
+    </style>
+
     <script>
+        function openAdminModal() { document.getElementById('admin-modal').setAttribute('data-open', 'true'); document.getElementById('admin-code').focus(); }
+        function closeAdminModal() { document.getElementById('admin-modal').setAttribute('data-open', 'false'); document.getElementById('admin-code').value = ''; }
+        function submitAdminLogin() { const code = document.getElementById('admin-code').value; if(code) socket.emit('admin_login', {code}); closeAdminModal(); }
+        document.getElementById('admin-code').addEventListener("keypress", (e) => { if (e.key === "Enter") submitAdminLogin(); });
+    </script>
         const ANIMALS = [
             'Ankole','Binturong','Capybara','Dhole','Eland','Fossa','Gerenuk','Huemul','Iriomote','Jabiru',
             'Kakapo','Loris','Markhor','Numbat','Okapi','Pangolin','Quokka','Ratel','Saiga','Tapir',
@@ -468,10 +593,8 @@
             btn.textContent = '🔐 Admin';
             btn.style.marginLeft = '8px';
             btn.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
-            btn.onclick = ()=>{
-                const code = prompt('ใส่รหัสแอดมิน:');
-                if(code) socket.emit('admin_login', {code});
-            };
+            btn.style.minHeight = '44px';
+            btn.onclick = openAdminModal;
             document.getElementById('header').appendChild(btn);
         })();
 
