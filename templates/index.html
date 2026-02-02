@@ -107,7 +107,7 @@
         }
 
         #admin-info {
-            display: none !important;
+            display: none;
             padding: 14px 20px;
             background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%);
             border-bottom: 2px solid #ffc107;
@@ -388,12 +388,9 @@
         </div>
 
         <div id="chat-area">
-            <!-- Main chat (broadcast) view -->
-            <div class="conversation-container active" id="main-chat">
-                <div class="conversation-header">
-                    📋 All Messages
-                </div>
-                <div class="conversation-messages" id="chat"></div>
+            <div id="admin-info" style="display:none;">
+                แอดมิน: <strong id="admin-name">-</strong>
+                &nbsp;|&nbsp; กำลังคุย: <strong id="target_user_name">(เลือกผู้ใช้จากซ้าย)</strong>
             </div>
             
             <!-- Individual conversation containers (created dynamically) -->
@@ -452,7 +449,8 @@
                 el.innerHTML = `<span>${u.name}</span><small style='color:#999'>#${u.sid.slice(0,5)}</small>`;
                 el.onclick = () => { 
                     document.getElementById('target_sid').value = u.sid;
-                    document.getElementById('target_user_name').innerText = u.name;
+                    const tgtEl = document.getElementById('target_user_name');
+                    if(tgtEl) tgtEl.innerText = u.name;
                     Array.from(ul.children).forEach(c => c.classList.remove('selected'));
                     el.classList.add('selected');
                 };
@@ -480,9 +478,12 @@
         }
 
         socket.on('admin_status', d => {
+            const adminInfoEl = document.getElementById('admin-info');
+            const left = document.getElementById('left-panel');
             if(d.is_admin){
-                document.getElementById('admin-info').style.display = 'block';
-                document.getElementById('left-panel').style.display='flex';
+                if(left) left.style.display = 'flex';
+                if(adminInfoEl) adminInfoEl.style.display = 'block';
+                if(d.name){ const an = document.getElementById('admin-name'); if(an) an.innerText = d.name; }
                 // add logout button to header
                 if(!document.getElementById('admin-logout-btn')){
                     const lb = document.createElement('button');
@@ -494,8 +495,8 @@
                     document.getElementById('header').appendChild(lb);
                 }
             } else {
-                document.getElementById('admin-info').style.display = 'none';
-                document.getElementById('left-panel').style.display='none';
+                if(adminInfoEl) adminInfoEl.style.display = 'none';
+                if(left) left.style.display = 'none';
                 const lb = document.getElementById('admin-logout-btn'); if(lb) lb.remove();
             }
         });
@@ -588,6 +589,8 @@
             
             // Hide main chat and other conversations
             document.querySelectorAll('.conversation-container').forEach(c => c.classList.remove('active'));
+            // Update selected user display if present
+            const tgtEl = document.getElementById('target_user_name'); if(tgtEl) tgtEl.innerText = userName;
             
             // Create or show conversation for this user
             let convId = 'conv-' + sid;

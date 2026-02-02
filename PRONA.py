@@ -121,7 +121,7 @@ def handle_join(data=None):
                 at.last_sid = request.sid
                 db.session.add(at)
                 db.session.commit()
-                emit('admin_status', {'is_admin': True})
+                emit('admin_status', {'is_admin': True, 'name': at.name})
                 # send all users to this admin (exclude themselves)
                 emit('user_list', get_all_users_for_admin(request.sid))
                 # notify all other admins of new admin
@@ -157,7 +157,7 @@ def handle_admin_login(data):
         at = AdminToken(token=token, name=admin_name, last_sid=request.sid)
         db.session.add(at)
         db.session.commit()
-        emit('admin_status', {'is_admin': True})
+        emit('admin_status', {'is_admin': True, 'name': admin_name})
         emit('admin_token', {'token': token})
         emit('sys_msg', {'msg': "คุณเข้าสู่ระบบแอดมินแล้ว"})
         # send all users to this admin (exclude themselves)
@@ -178,8 +178,11 @@ def handle_message(data):
     #ล็อกอินแอดมิน
     if msg_text == f"/login {ADMIN_PASS}":
         admins.add(request.sid)
-        users[request.sid] = f"ADMIN-{len(admins)}"
-        emit('admin_status', {'is_admin' : True})
+        # assign a nicer admin name and record it
+        admin_name = get_unique_admin_name()
+        admin_names[request.sid] = admin_name
+        users[request.sid] = admin_name
+        emit('admin_status', {'is_admin' : True, 'name': admin_name})
         emit('sys_msg', {'msg': "คุณเข้าสู่ระบบแอดมินแล้ว"})
         return
     new_msg = None
