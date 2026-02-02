@@ -534,6 +534,7 @@
         function submitAdminLogin() { const code = document.getElementById('admin-code').value; if(code) socket.emit('admin_login', {code}); closeAdminModal(); }
         document.getElementById('admin-code').addEventListener("keypress", (e) => { if (e.key === "Enter") submitAdminLogin(); });
     </script>
+    <script>
         const ANIMALS = [
             'Ankole','Binturong','Capybara','Dhole','Eland','Fossa','Gerenuk','Huemul','Iriomote','Jabiru',
             'Kakapo','Loris','Markhor','Numbat','Okapi','Pangolin','Quokka','Ratel','Saiga','Tapir',
