@@ -1,16 +1,35 @@
 nohup: ignoring input
-Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
- * Serving Flask app 'PRONA'
- * Debug mode: on
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:5000
- * Running on http://10.0.2.54:5000
-Press CTRL+C to quit
-127.0.0.1 - - [02/Feb/2026 13:37:23] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [02/Feb/2026 13:37:23] "GET /socket.io/?EIO=4&transport=polling&t=PmUaj-2 HTTP/1.1" 200 -
-127.0.0.1 - - [02/Feb/2026 13:37:23] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [02/Feb/2026 13:37:23] "POST /socket.io/?EIO=4&transport=polling&t=PmUak08&sid=HjVSYlxp995N9QbuAAAA HTTP/1.1" 200 -
-127.0.0.1 - - [02/Feb/2026 13:37:23] "GET /socket.io/?EIO=4&transport=polling&t=PmUak09&sid=HjVSYlxp995N9QbuAAAA HTTP/1.1" 200 -
-127.0.0.1 - - [02/Feb/2026 13:37:33] "GET /health HTTP/1.1" 200 -
-127.0.0.1 - - [02/Feb/2026 13:37:33] "GET / HTTP/1.1" 200 -
+(62724) wsgi starting up on http://0.0.0.0:5000
+(62724) accepted ('127.0.0.1', 42834)
+127.0.0.1 - - [02/Feb/2026 15:31:17] "GET /health HTTP/1.1" 200 129 0.005807
+(62724) accepted ('127.0.0.1', 42838)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:21] "GET / HTTP/1.1" 200 23756 0.004916
+(62724) accepted ('127.0.0.1', 42842)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:21] "GET /socket.io/?EIO=4&transport=polling&t=PmU-pWS HTTP/1.1" 200 276 0.000324
+(62724) accepted ('127.0.0.1', 42848)
+(62724) accepted ('127.0.0.1', 42860)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:21] "POST /socket.io/?EIO=4&transport=polling&t=PmU-pYQ&sid=PGiFBBpJeC-rT5tZAAAA HTTP/1.1" 200 195 0.001581
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:21] "GET /socket.io/?EIO=4&transport=polling&t=PmU-pYR&sid=PGiFBBpJeC-rT5tZAAAA HTTP/1.1" 200 189 0.000597
+(62724) accepted ('127.0.0.1', 42862)
+(62724) accepted ('127.0.0.1', 42876)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:21] "GET /socket.io/?EIO=4&transport=polling&t=PmU-pbp&sid=PGiFBBpJeC-rT5tZAAAA HTTP/1.1" 200 157 0.000151
+(62724) accepted ('127.0.0.1', 42880)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:21] "POST /socket.io/?EIO=4&transport=polling&t=PmU-pbq&sid=PGiFBBpJeC-rT5tZAAAA HTTP/1.1" 200 195 0.000215
+(62724) accepted ('127.0.0.1', 42894)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:21] "GET /socket.io/?EIO=4&transport=polling&t=PmU-pcw&sid=PGiFBBpJeC-rT5tZAAAA HTTP/1.1" 200 157 0.000144
+(62724) accepted ('127.0.0.1', 42898)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:23] "GET /socket.io/?EIO=4&transport=polling&t=PmU-p-f HTTP/1.1" 200 276 0.000244
+(62724) accepted ('127.0.0.1', 42900)
+(62724) accepted ('127.0.0.1', 42906)
+(62724) accepted ('127.0.0.1', 42908)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:23] "GET /socket.io/?EIO=4&transport=polling&t=PmU-q0Z&sid=GQ2yDWFFAji2wz7yAAAC HTTP/1.1" 200 157 0.000352
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:23] "POST /socket.io/?EIO=4&transport=polling&t=PmU-q0X&sid=GQ2yDWFFAji2wz7yAAAC HTTP/1.1" 200 195 0.000432
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:23] "GET /socket.io/?EIO=4&transport=polling&t=PmU-q4I&sid=GQ2yDWFFAji2wz7yAAAC HTTP/1.1" 200 157 0.000128
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:24] "GET /socket.io/?EIO=4&transport=polling&t=PmU-qEO HTTP/1.1" 200 276 0.000285
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:24] "POST /socket.io/?EIO=4&transport=polling&t=PmU-qF8&sid=iSGEeXckOHvmEaSYAAAE HTTP/1.1" 200 195 0.000358
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:24] "GET /socket.io/?EIO=4&transport=polling&t=PmU-qFB&sid=iSGEeXckOHvmEaSYAAAE HTTP/1.1" 200 189 0.000127
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:24] "POST /socket.io/?EIO=4&transport=polling&t=PmU-qFy&sid=iSGEeXckOHvmEaSYAAAE HTTP/1.1" 200 195 0.000226
+(62724) accepted ('127.0.0.1', 42918)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:24] "GET /socket.io/?EIO=4&transport=polling&t=PmU-qFw&sid=iSGEeXckOHvmEaSYAAAE HTTP/1.1" 200 157 0.000126
+(62724) accepted ('127.0.0.1', 42926)
+49.228.178.243,127.0.0.1 - - [02/Feb/2026 15:31:24] "GET /socket.io/?EIO=4&transport=polling&t=PmU-qI8&sid=iSGEeXckOHvmEaSYAAAE HTTP/1.1" 200 157 0.000138
