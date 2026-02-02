@@ -730,13 +730,32 @@
                 convContainer = document.createElement('div');
                 convContainer.id = convId;
                 convContainer.className = 'conversation-container active';
-                convContainer.innerHTML = `
-                    <div class="conversation-header">
-                        👤 ${escapeHtml(userName)}
-                        <button class="close-btn" onclick="closeConversation('${sid}')">✕ Close</button>
-                    </div>
-                    <div class="conversation-messages" id="messages-${sid}"></div>
-                `;
+
+                // Build header
+                const header = document.createElement('div');
+                header.className = 'conversation-header';
+
+                const title = document.createElement('div');
+                title.style.display = 'flex';
+                title.style.alignItems = 'center';
+                title.style.gap = '12px';
+                title.innerHTML = '👤 ' + escapeHtml(userName);
+
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'close-btn';
+                closeBtn.textContent = '✕ Close';
+                closeBtn.onclick = () => closeConversation(sid);
+
+                header.appendChild(title);
+                header.appendChild(closeBtn);
+
+                // Messages container for this conversation
+                const msgs = document.createElement('div');
+                msgs.className = 'conversation-messages';
+                msgs.id = 'messages-' + sid;
+
+                convContainer.appendChild(header);
+                convContainer.appendChild(msgs);
                 document.getElementById('conversations-container').appendChild(convContainer);
             } else {
                 convContainer.classList.add('active');
